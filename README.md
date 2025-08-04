@@ -1,277 +1,270 @@
+# Image Processing API
 
-# Golang Image Processing Library
-
-## Overview
-This library provides a set of image processing functions with a RESTful API interface.
-
-```markdown
+A RESTful API service built with Go that provides comprehensive image processing capabilities including resize, crop, rotate, blur, grayscale conversion, and sharpening effects.
 
 ## Features
-- Resize
-- Crop
-- Rotate
-- Blur
-- Grayscale
-- Sharpen
-- Authentication with JWT
-- Rate limiting
 
-## Installation
-```bash
-go mod tidy
-```
+- **Image Operations**: Resize, crop, rotate, blur, grayscale, and sharpen
+- **Authentication**: Secure JWT-based user authentication
+- **Rate Limiting**: Built-in request rate limiting for API protection
+- **Batch Processing**: Process multiple images simultaneously
+- **Async Processing**: Handle large image batches asynchronously
 
-## Docker Installation and Deployment
+## Quick Start
 
 ### Prerequisites
-Make sure you have Docker installed on your machine. You can download it from [Docker's official website](https://www.docker.com/products/docker-desktop).
 
-### Build Docker Image
-To build the Docker image for the server, navigate to the root directory of your project where the Dockerfile is located and run:
+- Go 1.19 or higher
+- PostgreSQL database
 
-- To build your Docker image:
+### Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/zahidhasann88/go-image-processing.git
+   cd go-image-processing
+   ```
+
+2. **Install dependencies**
+   ```bash
+   go mod tidy
+   ```
+
+3. **Set up environment variables**
+   
+   Create a `.env` file in the root directory:
+   ```env
+   DATABASE_URL=postgres://user:password@localhost/imgproc?sslmode=disable
+   JWT_SECRET=your_secure_jwt_secret_key_here
+   PORT=8080
+   ```
+
+4. **Set up the database**
+   
+   Create a PostgreSQL database named `imgproc` and run:
+   ```sql
+   CREATE TABLE users (
+       id SERIAL PRIMARY KEY,
+       username VARCHAR(50) UNIQUE NOT NULL,
+       password VARCHAR(255) NOT NULL,
+       created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+   );
+   ```
+
+5. **Run the application**
+   ```bash
+   go run cmd/server/main.go
+   ```
+
+Your API will be available at `http://localhost:8080`
+
+## Development
+
+### Using Makefile
+
+For Windows users, you'll need one of these tools:
+- **Git Bash** (Recommended): Install Git for Windows
+- **WSL**: Enable Windows Subsystem for Linux
+- **Make for Windows**: Download from GnuWin32
+
+Available commands:
 ```bash
-docker-compose build
+make run      # Start the development server
+make test     # Run all tests
+make build    # Build the application binary
+make clean    # Remove build artifacts
 ```
 
-- To start your application along with the database (if using Docker Compose):
+### Manual Build
+
 ```bash
-docker-compose up
+# Build for current platform
+go build -o image-processing-api cmd/server/main.go
+
+# Run the built binary
+./image-processing-api
 ```
 
-### Alternatively, to run only your application (if not using Docker Compose):
-```bash
-docker build -t image-processing-server .
+## 📚 API Documentation
+
+### Authentication Endpoints
+
+#### Register a New User
+```http
+POST /register
+Content-Type: application/json
+
+{
+  "username": "your_username",
+  "password": "your_secure_password"
+}
 ```
 
-### Running the Docker Container
-Once the image is built, you can run the server in a Docker container using:
-```bash
-docker run -p 8080:8080 -d image-processing-server
-```
-This command maps port 8080 of the Docker container to port 8080 on your host machine. Adjust the ports as needed if your server listens on a different port.
-
-### Docker Compose
-Alternatively, you can use Docker Compose for managing your application stack. Create a `docker-compose.yml` file in your project directory with the following content:
-```yaml
-version: '3'
-services:
-  image-processing:
-    image: image-processing-server
-    ports:
-      - "8080:8080"
-    environment:
-      DATABASE_URL: "postgres://user:password@localhost/dbname?sslmode=disable"
-      JWT_SECRET: "my_secret_key"
-    depends_on:
-      - postgres
-  postgres:
-    image: postgres
-    environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: dbname
-    ports:
-      - "5432:5432"
-```
-This Docker Compose configuration sets up two services: `image-processing` for your Golang application and `postgres` for your PostgreSQL database. Adjust the environment variables and ports according to your setup.
-
-## Using Makefile
-
-## Endpoints
-- Prerequisites
-To use the Makefile on Windows, you need a tool that supports the make command. You can use one of the following methods:
-
-1. Install Make for Windows:
-- Download and install Make for Windows from GnuWin.
-- Add the path to the make executable to your system's PATH environment variable.
-
-2. Use Git Bash:
-- Install Git for Windows from git-scm.com.
-- Open Git Bash.
-
-3.  Use Windows Subsystem for Linux (WSL):
-Enable the Windows Subsystem for Linux and install a Linux distribution from the Microsoft Store.
-Open your WSL terminal.
-
-## Running Makefile Commands
-1. Open your terminal (Git Bash, Command Prompt, or WSL).
-2. Navigate to your project directory
-```bash
-cd path\to\your\project
-```
-3. Run the make command
-```bash
-make run
+**Response:**
+```json
+{
+  "message": "User registered successfully"
+}
 ```
 
-## Makefile Commands
-- make run: Run the server.
-- make test: Run the tests.
-- make build: Build the application.
-- make clean: Clean the build artifacts.
+#### User Login
+```http
+POST /login
+Content-Type: application/json
 
-## Running the Server
-If you prefer to run the server outside of Docker, you can still do so using:
-```bash
-go run cmd/server/main.go
+{
+  "username": "your_username",
+  "password": "your_secure_password"
+}
 ```
 
-## Build Steps
-- Build the Application: Use the go build command to compile your application into an executable binary. Run the following command:
-```bash
-go build -o image-processing-app cmd/server/main.go
-```
-- Run the Application: Once built, you can run the application directly from the command line. For example:
-```bash
-./image-processing-app
+**Response:**
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
 ```
 
-## Endpoints
+### Image Processing Endpoints
 
-### Authentication
-- **POST /register**: Register a new user
-  - **Request Body**:
-    ```json
-    {
-      "username": "example",
-      "password": "password123"
-    }
-    ```
-  - **Response**:
-    ```json
-    {
-      "message": "User registered successfully"
-    }
-    ```
+> **Note**: All image processing endpoints require authentication. Include the JWT token in the Authorization header:
+> ```
+> Authorization: Bearer your_jwt_token
+> ```
 
-- **POST /login**: Login and get a token
-  - **Request Body**:
-    ```json
-    {
-      "username": "example",
-      "password": "password123"
-    }
-    ```
-  - **Response**:
-    ```json
-    {
-      "token": "your_jwt_token"
-    }
-    ```
+#### Single Image Upload
+```http
+POST /upload
+Authorization: Bearer your_jwt_token
+Content-Type: multipart/form-data
 
-### Image Processing
-- **POST /upload**: Upload and process a single image
-  - **Authorization**: Bearer Token
-  - **Request Body (form-data)**:
-    - **Key**: `image` | **Value**: Select a file | **Type**: File
-    - Additional keys (optional): `resize`, `crop`, `rotate`, `blur`, `grayscale`, `sharpen`
-  - **Response**:
-    ```json
-    {
-      "message": "Image processed successfully",
-      "url": "http://localhost:8080/uploads/processed-image.jpg"
-    }
-    ```
-
-- **POST /batch-upload**: Upload and process multiple images
-  - **Authorization**: Bearer Token
-  - **Request Body (form-data)**:
-    - **Key**: `images` | **Value**: Select multiple files | **Type**: File
-    - Additional keys (optional): `resize`, `crop`, `rotate`, `blur`, `grayscale`, `sharpen`
-  - **Response**:
-    ```json
-    {
-      "message": "Batch processing completed successfully"
-    }
-    ```
-
-- **POST /async-upload**: Upload and process images asynchronously
-  - **Authorization**: Bearer Token
-  - **Request Body (form-data)**:
-    - **Key**: `images` | **Value**: Select multiple files | **Type**: File
-    - Additional keys (optional): `resize`, `crop`, `rotate`, `blur`, `grayscale`, `sharpen`
-  - **Response**:
-    ```json
-    {
-      "message": "Images are being processed"
-    }
-    ```
-
-## Configuration
-### Create a .env file with the following content:
-```bash
-DATABASE_URL=postgres://user:password@localhost/dbname?sslmode=disable
-JWT_SECRET=my_secret_key
+Form Data:
+- image: [file] (required)
+- resize: "300x200" (optional)
+- crop: "100x100+50+50" (optional)  
+- rotate: "90" (optional)
+- blur: "2.5" (optional)
+- grayscale: "true" (optional)
+- sharpen: "1.5" (optional)
 ```
 
-### Create a Postgres Database (Example Name: imgproc)
-#### Run the SQL query
-```sql
-CREATE TABLE users (
-    id SERIAL PRIMARY KEY,
-    username VARCHAR(50) UNIQUE NOT NULL,
-    password VARCHAR(255) NOT NULL,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);
+**Response:**
+```json
+{
+  "message": "Image processed successfully",
+  "url": "http://localhost:8080/uploads/processed-image-123.jpg"
+}
 ```
 
-## Testing with Postman
+#### Batch Image Upload
+```http
+POST /batch-upload
+Authorization: Bearer your_jwt_token
+Content-Type: multipart/form-data
 
-### 1. Register a New User
-- **Method**: POST
-- **URL**: `http://localhost:8080/register`
-- **Body**: 
-  ```json
-  {
-    "username": "example",
-    "password": "password123"
-  }
-  ```
-
-### 2. Login and Get a Token
-- **Method**: POST
-- **URL**: `http://localhost:8080/login`
-- **Body**: 
-  ```json
-  {
-    "username": "example",
-    "password": "password123"
-  }
-  ```
-- **Response**:
-  ```json
-  {
-    "token": "your_jwt_token"
-  }
-  ```
-
-### 3. Upload and Process a Single Image
-- **Method**: POST
-- **URL**: `http://localhost:8080/upload`
-- **Authorization**: Bearer Token
-- **Body**: 
-  - **Type**: form-data
-  - **Key**: `image` | **Value**: Select a file | **Type**: File
-  - Additional keys (optional): `resize`, `crop`, `rotate`, `blur`, `grayscale`, `sharpen`
-
-### 4. Batch Upload and Process Multiple Images
-- **Method**: POST
-- **URL**: `http://localhost:8080/batch-upload`
-- **Authorization**: Bearer Token
-- **Body**: 
-  - **Type**: form-data
-  - **Key**: `images` | **Value**: Select multiple files | **Type**: File
-  - Additional keys (optional): `resize`, `crop`, `rotate`, `blur`, `grayscale`, `sharpen`
-
-### 5. Asynchronous Upload and Process Images
-- **Method**: POST
-- **URL**: `http://localhost:8080/async-upload`
-- **Authorization**: Bearer Token
-- **Body**: 
-  - **Type**: form-data
-  - **Key**: `images` | **Value**: Select multiple files | **Type**: File
-  - Additional keys (optional): `resize`, `crop`, `rotate`, `blur`, `grayscale`, `sharpen`
+Form Data:
+- images: [multiple files] (required)
+- resize: "300x200" (optional)
+- crop: "100x100+50+50" (optional)
+- rotate: "90" (optional)
+- blur: "2.5" (optional)
+- grayscale: "true" (optional)
+- sharpen: "1.5" (optional)
 ```
 
-This README.md file now includes Docker installation and deployment instructions specific to your Golang Image Processing Library project, alongside existing instructions for running the server, endpoints, configuration, and testing with Postman. Adjust paths and settings as necessary for your specific environment.
+**Response:**
+```json
+{
+  "message": "Batch processing completed successfully",
+  "processed_count": 5,
+  "urls": [
+    "http://localhost:8080/uploads/processed-image-1.jpg",
+    "http://localhost:8080/uploads/processed-image-2.jpg"
+  ]
+}
+```
+
+#### Asynchronous Image Upload
+```http
+POST /async-upload
+Authorization: Bearer your_jwt_token
+Content-Type: multipart/form-data
+
+Form Data:
+- images: [multiple files] (required)
+- resize: "300x200" (optional)
+- crop: "100x100+50+50" (optional)
+- rotate: "90" (optional)
+- blur: "2.5" (optional)
+- grayscale: "true" (optional)
+- sharpen: "1.5" (optional)
+```
+
+**Response:**
+```json
+{
+  "message": "Images are being processed asynchronously",
+  "job_id": "job-123456",
+  "status": "processing"
+}
+```
+
+## 🧪 Testing
+
+### Step 1: Register a User
+1. Set method to `POST`
+2. URL: `http://localhost:8080/register`
+3. Headers: `Content-Type: application/json`
+4. Body (raw JSON):
+   ```json
+   {
+     "username": "testuser",
+     "password": "securepassword123"
+   }
+   ```
+
+### Step 2: Login and Get Token
+1. Set method to `POST`
+2. URL: `http://localhost:8080/login`
+3. Body (raw JSON):
+   ```json
+   {
+     "username": "testuser",
+     "password": "securepassword123"
+   }
+   ```
+4. Copy the `token` from the response
+
+### Step 3: Process an Image
+1. Set method to `POST`
+2. URL: `http://localhost:8080/upload`
+3. Authorization: `Bearer [paste_your_token_here]`
+4. Body: `form-data`
+   - Key: `image`, Type: `File`, Value: Select your image
+   - Key: `resize`, Type: `Text`, Value: `400x300` (optional)
+   - Key: `grayscale`, Type: `Text`, Value: `true` (optional)
+
+## ⚙️ Configuration Options
+
+### Environment Variables
+
+| Variable | Description | Default | Required |
+|----------|-------------|---------|----------|
+| `DATABASE_URL` | PostgreSQL connection string | - | Yes |
+| `JWT_SECRET` | Secret key for JWT token signing | - | Yes |
+| `PORT` | Server port | 8080 | No |
+| `RATE_LIMIT` | Requests per minute per IP | 100 | No |
+| `MAX_FILE_SIZE` | Maximum file size in MB | 10 | No |
+
+### Image Processing Parameters
+
+| Parameter | Description | Example |
+|-----------|-------------|---------|
+| `resize` | New dimensions (width x height) | `300x200` |
+| `crop` | Crop area (width x height + x_offset + y_offset) | `100x100+50+50` |
+| `rotate` | Rotation angle in degrees | `90`, `180`, `270` |
+| `blur` | Blur intensity (0.1 to 10.0) | `2.5` |
+| `grayscale` | Convert to grayscale | `true` |
+| `sharpen` | Sharpen intensity (0.1 to 5.0) | `1.5` |
+
+---
